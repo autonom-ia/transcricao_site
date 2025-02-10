@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assinatura - Transcrição IA</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/subscription.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="subscription-container">
+        <div class="subscription-header">
+            <img src="images/logo.png" alt="Logo Transcrição IA">
+            <h1>Escolha seu Plano</h1>
+            <p>Transforme áudio em texto com precisão e rapidez. Nossa tecnologia de IA avançada garante transcrições de alta qualidade.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-clock"></i>
+                <h3>Rápido e Eficiente</h3>
+                <p>Transcrições prontas em minutos, não em horas</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-language"></i>
+                <h3>Múltiplos Idiomas</h3>
+                <p>Suporte para português, inglês e espanhol</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-check-circle"></i>
+                <h3>Alta Precisão</h3>
+                <p>Tecnologia de IA de última geração</p>
+            </div>
+        </div>
+
+        <div class="subscription-plan">
+            <h2 class="plan-name">Plano Premium</h2>
+            <div class="plan-price">
+                R$ 19,90 <small>/mês</small>
+            </div>
+            <ul class="plan-features">
+                <li><i class="fas fa-check"></i> Até 10 horas de transcrição por mês</li>
+                <li><i class="fas fa-check"></i> Reconhecimento de múltiplos falantes</li>
+                <li><i class="fas fa-check"></i> Exportação em diversos formatos</li>
+                <li><i class="fas fa-check"></i> Suporte prioritário</li>
+                <li><i class="fas fa-check"></i> Sem limite de tamanho de arquivo</li>
+                <li><i class="fas fa-check"></i> Correção automática de pontuação</li>
+            </ul>
+            <button id="subscribeButton" class="subscribe-button">Assinar Agora</button>
+        </div>
+    </div>
+
+    <!-- AWS Amplify -->
+    <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script>
+        // Configuração do AWS Cognito
+        const awsConfig = {
+            Auth: {
+                region: 'us-east-1',
+                userPoolId: 'us-east-1_pYWYtZN5J',
+                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
+            }
+        };
+
+        // Configurar o Amplify
+        const { Amplify, Auth } = aws_amplify;
+        Amplify.configure(awsConfig);
+
+        // Verificar autenticação
+        async function checkAuth() {
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                return true;
+            } catch {
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar se o usuário está autenticado
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) return;
+
+            // Adicionar evento ao botão de assinatura
+            document.getElementById('subscribeButton').addEventListener('click', async () => {
+                try {
+                    const user = await Auth.currentAuthenticatedUser();
+                    window.location.href = 'whatsapp-connect.html';
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao processar sua solicitação. Por favor, tente novamente.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

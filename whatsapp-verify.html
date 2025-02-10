@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar WhatsApp - Transcrição IA</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/subscription.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .token-input {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .token-input input {
+            width: 3rem;
+            height: 4rem;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #111;
+            color: #fff;
+        }
+
+        .token-input input:focus {
+            outline: none;
+            border-color: #00A3FF;
+        }
+
+        .resend-code {
+            color: #fff;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .resend-code a {
+            color: #00A3FF;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .resend-code a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="subscription-container">
+        <div class="subscription-header">
+            <img src="images/logo.png" alt="Logo Transcrição IA">
+            <h1>Verificar WhatsApp</h1>
+            <p>Digite o código de 6 dígitos que enviamos para seu WhatsApp</p>
+        </div>
+
+        <div class="subscription-plan">
+            <h2 class="plan-name">Código de Verificação</h2>
+            <p style="color: #fff; margin-bottom: 2rem;">
+                Enviamos um código para o número <span id="userPhone" style="color: #00A3FF; font-weight: 600;"></span>. 
+                Digite o código abaixo para confirmar seu WhatsApp.
+            </p>
+            
+            <form id="verifyForm">
+                <div class="token-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                </div>
+                <button type="submit" class="subscribe-button">Verificar Código</button>
+            </form>
+
+            <p class="resend-code">
+                Não recebeu o código? 
+                <a href="#" id="resendCode">Enviar novamente</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- AWS Amplify -->
+    <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script>
+        // Configuração do AWS Cognito
+        const awsConfig = {
+            Auth: {
+                region: 'us-east-1',
+                userPoolId: 'us-east-1_pYWYtZN5J',
+                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
+            }
+        };
+
+        // Configurar o Amplify
+        const { Amplify, Auth } = aws_amplify;
+        Amplify.configure(awsConfig);
+
+        // Verificar autenticação
+        async function checkAuth() {
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                return true;
+            } catch {
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar se o usuário está autenticado
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) return;
+
+            // Pegar o número do telefone da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const phone = urlParams.get('phone');
+            if (!phone) {
+                window.location.href = 'whatsapp-connect.html';
+                return;
+            }
+
+            // Mostrar o número do telefone
+            document.getElementById('userPhone').textContent = phone;
+
+            // Configurar inputs do token
+            const inputs = document.querySelectorAll('.token-input input');
+            inputs.forEach((input, index) => {
+                // Ao digitar
+                input.addEventListener('input', (e) => {
+                    if (e.target.value) {
+                        // Mover para o próximo input
+                        if (index < inputs.length - 1) {
+                            inputs[index + 1].focus();
+                        }
+                    }
+                });
+
+                // Ao pressionar backspace
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        // Mover para o input anterior
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+
+            // Manipular envio do formulário
+            document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Coletar o token
+                const token = Array.from(inputs).map(input => input.value).join('');
+                
+                if (token.length !== 6) {
+                    alert('Por favor, digite o código completo de 6 dígitos');
+                    return;
+                }
+
+                try {
+                    // Pegar o número do telefone e formatar
+                    const phone = urlParams.get('phone');
+                    const formattedPhone = '55' + phone.replace(/\D/g, '');
+
+                    // Chamar a API para validar o token
+                    const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messageType: "checkingToken",
+                            phoneNumber: formattedPhone,
+                            token: token
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.statusCode === "200") {
+                        // Token validado com sucesso - redirecionar para instruções
+                        window.location.href = `whatsapp-instructions.html?phone=${encodeURIComponent(phone)}`;
+                    } else if (data.statusCode === "404") {
+                        // Token inválido
+                        alert('Código inválido. Por favor, verifique o código e tente novamente.');
+                        // Limpar os inputs
+                        inputs.forEach(input => input.value = '');
+                        inputs[0].focus();
+                    } else {
+                        throw new Error('Erro desconhecido ao validar o código');
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao verificar o código. Por favor, tente novamente.');
+                }
+            });
+
+            // Manipular reenvio de código
+            document.getElementById('resendCode').addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    // Pegar o número do telefone e formatar
+                    const phone = urlParams.get('phone');
+                    const formattedPhone = '55' + phone.replace(/\D/g, '');
+
+                    // Chamar a API para reenviar o código
+                    const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messageType: "validateNumber",
+                            phoneNumber: formattedPhone
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Erro ao reenviar o código');
+                    }
+
+                    alert('Novo código enviado com sucesso!');
+                    // Limpar os inputs
+                    inputs.forEach(input => input.value = '');
+                    inputs[0].focus();
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao reenviar o código. Por favor, tente novamente.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

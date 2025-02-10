@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectar WhatsApp - Transcrição IA</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/subscription.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="subscription-container">
+        <div class="subscription-header">
+            <img src="images/logo.png" alt="Logo Transcrição IA">
+            <h1>Conectar WhatsApp</h1>
+            <p>Vamos configurar seu WhatsApp para receber e transcrever áudios automaticamente</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>Passo 1: Confirmar Número</h3>
+                <p>Enviaremos um código de verificação para seu WhatsApp para confirmar seu número</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-qrcode"></i>
+                <h3>Passo 2: Conectar Dispositivo</h3>
+                <p>Escaneie o QR Code com seu WhatsApp para ativar a integração</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-check-circle"></i>
+                <h3>Passo 3: Pronto!</h3>
+                <p>Seu WhatsApp estará conectado e pronto para transcrever áudios</p>
+            </div>
+        </div>
+
+        <div class="subscription-plan">
+            <h2 class="plan-name">Confirmar seu Número</h2>
+            <p style="color: #fff; margin-bottom: 2rem;">
+                Para começar, precisamos confirmar seu número do WhatsApp. 
+                Enviaremos um código de verificação para garantir a segurança da sua conta.
+            </p>
+            <form id="phoneForm" class="auth-form">
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label for="phone" style="color: #fff; display: block; margin-bottom: 0.5rem;">Número do WhatsApp</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="(99) 99999-9999" style="width: 100%; padding: 0.8rem; border-radius: 5px; border: 1px solid #333; background: #111; color: #fff;">
+                </div>
+                <button type="submit" class="subscribe-button">Enviar Código</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- AWS Amplify -->
+    <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script src="https://unpkg.com/imask"></script>
+    <script>
+        // Configuração do AWS Cognito
+        const awsConfig = {
+            Auth: {
+                region: 'us-east-1',
+                userPoolId: 'us-east-1_pYWYtZN5J',
+                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
+            }
+        };
+
+        // Configurar o Amplify
+        const { Amplify, Auth } = aws_amplify;
+        Amplify.configure(awsConfig);
+
+        // Verificar autenticação
+        async function checkAuth() {
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                return true;
+            } catch {
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar se o usuário está autenticado
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) return;
+
+            // Inicializar máscara do telefone
+            const phoneInput = document.getElementById('phone');
+            IMask(phoneInput, {
+                mask: '(00) 00000-0000'
+            });
+
+            // Manipular envio do formulário
+            document.getElementById('phoneForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const phone = document.getElementById('phone').value;
+                
+                if (!phone.match(/^\(\d{2}\)\s\d{5}-\d{4}$/)) {
+                    alert('Por favor, insira um número de telefone válido no formato (99) 99999-9999');
+                    return;
+                }
+
+                // Formatar o número para o formato requerido (55DDD999999999)
+                const formattedPhone = '55' + phone.replace(/\D/g, '');
+
+                try {
+                    // Chamar a API para validar o número
+                    const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messageType: "validateNumber",
+                            phoneNumber: formattedPhone
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Erro ao validar o número');
+                    }
+
+                    // Redirecionar para a página de verificação
+                    window.location.href = `whatsapp-verify.html?phone=${encodeURIComponent(phone)}`;
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao enviar o código. Por favor, tente novamente.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

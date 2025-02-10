@@ -1,0 +1,31 @@
+{
+  "name": "transcricao-site",
+  "version": "1.0.0",
+  "description": "Site de transcrição com autenticação",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@aws-amplify/auth": "^5.5.5",
+    "@aws-amplify/core": "^5.8.5",
+    "@aws-crypto/sha256-js": "^5.2.0",
+    "@aws-crypto/supports-web-crypto": "^5.2.0",
+    "@aws-sdk/credential-provider-cognito-identity": "^3.496.0",
+    "@aws-sdk/credential-providers": "^3.496.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "babel-jest": "^29.7.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    },
+    "testEnvironment": "node",
+    "setupFiles": ["./tests/setup.js"]
+  }
+}
