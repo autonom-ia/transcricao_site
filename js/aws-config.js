@@ -1,11 +1,10 @@
+console.log('aws-config.js loaded');
+
 // Configuração do AWS Cognito
-const awsConfig = {
+window.awsConfig = {
     Auth: {
         region: 'us-east-1',
-        userPoolId: 'us-east-1_pYWYtZN5J',
-        userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
+        userPoolId: 'us-east-1_1AR6CDpWO',
+        userPoolWebClientId: '1spvufe37esdugaoo3k8do3fm3'
     }
 };
-
-// Configurar o Amplify
-Amplify.configure(awsConfig);

@@ -16,13 +16,17 @@
                 <a href="index.html">
                     <img src="images/logo.png" alt="Logo Transcrição IA">
                 </a>
-                <h2>Criar conta</h2>
+                <h2>Criar Conta</h2>
             </div>
             
             <div class="auth-options">
+                <div class="divider">
+                    <span>ou</span>
+                </div>
+
                 <form id="signupForm" class="auth-form">
                     <div class="form-group">
-                        <label for="name">Nome completo</label>
+                        <label for="name">Nome</label>
                         <input type="text" id="name" name="name" required>
                     </div>
                     <div class="form-group">
@@ -30,42 +34,190 @@
                         <input type="email" id="email" name="email" required>
                     </div>
                     <div class="form-group">
+                        <label for="cpf">CPF</label>
+                        <input type="text" id="cpf" name="cpf" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Telefone</label>
+                        <input type="text" id="phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
                         <label for="password">Senha</label>
                         <input type="password" id="password" name="password" required>
                     </div>
-                    <button type="submit" class="submit-btn">Cadastrar</button>
+                    <button type="submit" class="submit-btn">Criar Conta</button>
                 </form>
             </div>
 
             <div class="auth-footer">
-                <p>Já tem uma conta? <a href="login.html">Entre aqui</a></p>
+                <p>Já tem uma conta? <a href="login.html">Entrar</a></p>
             </div>
         </div>
     </div>
 
     <!-- AWS Amplify -->
+    <script>
+        console.log('Before loading aws-amplify.min.js');
+    </script>
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
+        console.log('After loading aws-amplify.min.js');
+        console.log('aws_amplify:', window.aws_amplify);
+    </script>
+    <script src="js/aws-config.js"></script>
+    <script src="js/auth.js"></script>
 
-        // Configurar o Amplify
-        const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(awsConfig);
-        
-        // Expor Auth globalmente
-        window.Auth = Auth;
-        
+    <script>
         // Verificar se Auth está disponível
         console.log('Auth disponível:', !!window.Auth);
-        console.log('Amplify disponível:', !!Amplify);
+        console.log('awsConfig:', window.awsConfig);
+
+        // Função para validar CPF
+        function isValidCPF(cpf) {
+            cpf = cpf.replace(/[^\d]/g, '');
+            
+            if (cpf.length !== 11) return false;
+            
+            // Verificar se todos os dígitos são iguais
+            if (/^(\d)\1{10}$/.test(cpf)) return false;
+            
+            // Validar dígitos verificadores
+            let sum = 0;
+            let remainder;
+            
+            for (let i = 1; i <= 9; i++) {
+                sum += parseInt(cpf[i-1]) * (11 - i);
+            }
+            
+            remainder = (sum * 10) % 11;
+            if (remainder === 10 || remainder === 11) remainder = 0;
+            if (remainder !== parseInt(cpf[9])) return false;
+            
+            sum = 0;
+            for (let i = 1; i <= 10; i++) {
+                sum += parseInt(cpf[i-1]) * (12 - i);
+            }
+            
+            remainder = (sum * 10) % 11;
+            if (remainder === 10 || remainder === 11) remainder = 0;
+            if (remainder !== parseInt(cpf[10])) return false;
+            
+            return true;
+        }
+
+        // Função para formatar CPF
+        function formatCPF(cpf) {
+            cpf = cpf.replace(/\D/g, '');
+            return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        // Função para formatar telefone
+        function formatPhone(phone) {
+            phone = phone.replace(/\D/g, '');
+            return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        }
+
+        // Aplicar máscara ao CPF
+        document.getElementById('cpf').addEventListener('input', function(e) {
+            const cpf = e.target.value.replace(/\D/g, '');
+            e.target.value = formatCPF(cpf);
+        });
+
+        // Aplicar máscara ao telefone
+        document.getElementById('phone').addEventListener('input', function(e) {
+            const phone = e.target.value.replace(/\D/g, '');
+            e.target.value = formatPhone(phone);
+        });
+
+        // Manipular envio do formulário
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
+            const phone = document.getElementById('phone').value.replace(/\D/g, '');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Validar CPF
+            if (!isValidCPF(cpf)) {
+                alert('Por favor, insira um CPF válido');
+                return;
+            }
+
+            // Validar telefone
+            if (phone.length !== 11) {
+                alert('Por favor, insira um número de WhatsApp válido');
+                return;
+            }
+
+            // Validar senha
+            if (password.length < 8) {
+                alert('A senha deve ter pelo menos 8 caracteres');
+                return;
+            }
+
+            try {
+                // Formatar o número de telefone para o padrão internacional
+                const formattedPhone = phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`;
+
+                // Criar usuário no Cognito
+                const { user } = await Auth.signUp({
+                    username: email,
+                    password: password,
+                    attributes: {
+                        email: email,
+                        name: name,
+                        phone_number: formattedPhone
+                    }
+                });
+
+                // Registrar usuário na API transcricao_site
+                const apiUrl = 'https://n8n.autonomia.site/webhook/transcricao_site';
+                const userData = {
+                    messageType: "createUser",
+                    phoneNumber: formattedPhone.replace(/\D/g, ''),
+                    cpf: cpf,
+                    email: email,
+                    name: name
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Erro ao registrar usuário na API');
+                    }
+
+                    // Se tudo der certo, redireciona para a página de confirmação
+                    window.location.href = 'confirm.html?email=' + encodeURIComponent(email);
+                } catch (error) {
+                    // Se houver erro na API, tenta deletar o usuário do Cognito
+                    console.error('Erro ao registrar usuário na API:', error);
+                    try {
+                        // Aqui você precisaria implementar a lógica para deletar o usuário do Cognito
+                        // Como isso requer permissões admin, você pode precisar fazer isso através da sua API
+                        throw new Error('Falha ao registrar usuário. Por favor, tente novamente.');
+                    } catch (deleteError) {
+                        console.error('Erro ao tentar reverter criação do usuário:', deleteError);
+                        throw new Error('Falha ao registrar usuário. Por favor, tente novamente.');
+                    }
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                if (error.code === 'UsernameExistsException') {
+                    alert('Este e-mail já está cadastrado');
+                } else {
+                    alert('Erro ao criar conta. Por favor, tente novamente.');
+                }
+            }
+        });
     </script>
-    <script src="js/auth.js"></script>
 </body>
 </html>

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Transcrição IA</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -13,7 +13,7 @@
         <div class="auth-box">
             <div class="auth-header">
                 <a href="index.html">
-                    <img src="images/logo.png" alt="Logo Transcrição IA">
+                    <img src="/images/logo.png" alt="Logo Transcrição IA">
                 </a>
                 <h2>Entrar</h2>
             </div>
@@ -38,35 +38,40 @@
             </div>
 
             <div class="auth-footer">
-                <p>Não tem uma conta? <a href="signup.html">Cadastre-se</a></p>
+                <p>Não tem uma conta? <a href="/signup.html">Cadastre-se</a></p>
             </div>
         </div>
     </div>
 
     <!-- AWS Amplify -->
+    <script>
+        console.log('Before loading aws-amplify.min.js');
+    </script>
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
-
+        console.log('After loading aws-amplify.min.js');
+        console.log('aws_amplify:', window.aws_amplify);
+    </script>
+    <script src="/js/aws-config.js"></script>
+    <script>
         // Configurar o Amplify
         const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(awsConfig);
-        
-        // Expor Auth globalmente
-        window.Auth = Auth;
-        
-        // Verificar se Auth está disponível
-        console.log('Auth disponível:', !!window.Auth);
-        console.log('Amplify disponível:', !!Amplify);
+        Amplify.configure(window.awsConfig);
+
+        // Manipular envio do formulário
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const user = await Auth.signIn(email, password);
+                window.location.href = '/subscription.html';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao fazer login. Por favor, verifique suas credenciais.');
+            }
+        });
     </script>
-    <script src="js/aws-config.js"></script>
-    <script src="js/auth.js"></script>
 </body>
 </html>

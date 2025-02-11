@@ -54,47 +54,29 @@
 
     <!-- AWS Amplify -->
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script src="js/aws-config.js"></script>
+    <script src="js/auth.js"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
-
-        // Configurar o Amplify
-        const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(awsConfig);
-
-        // Verificar autenticação
-        async function checkAuth() {
+        // Verificar autenticação ao carregar a página
+        document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const user = await Auth.currentAuthenticatedUser();
-                return true;
-            } catch {
+            } catch (error) {
+                console.error('Erro:', error);
                 window.location.href = 'login.html';
-                return false;
             }
-        }
+        });
 
-        // Inicializar página
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Verificar se o usuário está autenticado
-            const isAuthenticated = await checkAuth();
-            if (!isAuthenticated) return;
-
-            // Adicionar evento ao botão de assinatura
-            document.getElementById('subscribeButton').addEventListener('click', async () => {
-                try {
-                    const user = await Auth.currentAuthenticatedUser();
-                    window.location.href = 'whatsapp-connect.html';
-                } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao processar sua solicitação. Por favor, tente novamente.');
-                }
-            });
+        // Manipular clique no botão de assinar
+        document.getElementById('subscribeButton').addEventListener('click', async () => {
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                // Redirecionar para a página de conexão do WhatsApp
+                window.location.href = 'whatsapp-connect.html';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao processar sua solicitação. Por favor, tente novamente.');
+            }
         });
     </script>
 </body>

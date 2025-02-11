@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conectar WhatsApp - Transcrição IA</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/subscription.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/subscription.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="subscription-container">
         <div class="subscription-header">
-            <img src="images/logo.png" alt="Logo Transcrição IA">
+            <img src="/images/logo.png" alt="Logo Transcrição IA">
             <h1>Conectar WhatsApp</h1>
             <p>Vamos configurar seu WhatsApp para receber e transcrever áudios automaticamente</p>
         </div>
@@ -46,6 +46,7 @@
                     <label for="phone" style="color: #fff; display: block; margin-bottom: 0.5rem;">Número do WhatsApp</label>
                     <input type="tel" id="phone" name="phone" required placeholder="(99) 99999-9999" style="width: 100%; padding: 0.8rem; border-radius: 5px; border: 1px solid #333; background: #111; color: #fff;">
                 </div>
+
                 <button type="submit" class="subscribe-button">Enviar Código</button>
             </form>
         </div>
@@ -53,20 +54,18 @@
 
     <!-- AWS Amplify -->
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script src="/js/aws-config.js"></script>
     <script src="https://unpkg.com/imask"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
-
         // Configurar o Amplify
         const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(awsConfig);
+        Amplify.configure(window.awsConfig);
+
+        // Função para formatar telefone
+        function formatPhone(phone) {
+            phone = phone.replace(/\D/g, '');
+            return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        }
 
         // Verificar autenticação
         async function checkAuth() {
@@ -74,7 +73,7 @@
                 const user = await Auth.currentAuthenticatedUser();
                 return true;
             } catch {
-                window.location.href = 'login.html';
+                window.location.href = '/login.html';
                 return false;
             }
         }
@@ -91,6 +90,18 @@
                 mask: '(00) 00000-0000'
             });
 
+            // Carregar telefone do usuário
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                const { phone_number } = user.attributes;
+                if (phone_number) {
+                    const phone = phone_number.replace(/^\+55/, '');
+                    phoneInput.value = formatPhone(phone);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar telefone:', error);
+            }
+
             // Manipular envio do formulário
             document.getElementById('phoneForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -104,29 +115,8 @@
                 // Formatar o número para o formato requerido (55DDD999999999)
                 const formattedPhone = '55' + phone.replace(/\D/g, '');
 
-                try {
-                    // Chamar a API para validar o número
-                    const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            messageType: "validateNumber",
-                            phoneNumber: formattedPhone
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Erro ao validar o número');
-                    }
-
-                    // Redirecionar para a página de verificação
-                    window.location.href = `whatsapp-verify.html?phone=${encodeURIComponent(phone)}`;
-                } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao enviar o código. Por favor, tente novamente.');
-                }
+                // Redirecionar para a página de verificação
+                window.location.href = `/whatsapp-verify.html?phone=${encodeURIComponent(phone)}`;
             });
         });
     </script>

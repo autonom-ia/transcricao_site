@@ -42,19 +42,11 @@
 
     <!-- AWS Amplify -->
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script src="js/aws-config.js"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
-
         // Configurar o Amplify
         const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(awsConfig);
+        Amplify.configure(window.awsConfig);
         
         // Expor Auth globalmente
         window.Auth = Auth;

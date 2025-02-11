@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code WhatsApp - Transcrição IA</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/subscription.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/subscription.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -33,6 +33,34 @@
         .qr-code img {
             width: 100%;
             height: auto;
+        }
+
+        .pairing-code {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 163, 255, 0.1);
+            border: 1px solid #00A3FF;
+            border-radius: 8px;
+            color: #fff;
+        }
+
+        .pairing-code h3 {
+            color: #00A3FF;
+            margin-bottom: 1rem;
+        }
+
+        .pairing-code-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #00A3FF;
+            margin: 1rem 0;
+        }
+
+        .pairing-code p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
         }
 
         .loading {
@@ -68,12 +96,33 @@
         .qr-content {
             display: none;
         }
+
+        .or-divider {
+            color: #fff;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            text-align: center;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .or-divider span {
+            padding: 0 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
     <div class="subscription-container">
         <div class="subscription-header">
-            <img src="images/logo.png" alt="Logo Transcrição IA">
+            <img src="/images/logo.png" alt="Logo Transcrição IA">
             <h1>Conectar WhatsApp</h1>
             <p>Escaneie o QR Code com seu WhatsApp</p>
         </div>
@@ -88,58 +137,74 @@
                     <p>Aguarde, estamos gerando seu QR Code...</p>
                 </div>
                 <div id="qrContent" class="qr-content">
-                    <img id="qrImage" alt="QR Code do WhatsApp">
+                    <img id="qrCode" alt="QR Code do WhatsApp">
                 </div>
+            </div>
+
+            <div class="or-divider">
+                <span>OU</span>
+            </div>
+
+            <div id="pairingCodeContent" class="pairing-code" style="display: none;">
+                <h3>Código de Pareamento</h3>
+                <p>Se você estiver no celular e não puder ler o QR Code, use este código:</p>
+                <div id="pairingCodeValue" class="pairing-code-value">
+                    Carregando...
+                </div>
+                <p>Este código expira junto com o QR Code</p>
             </div>
         </div>
     </div>
 
     <!-- AWS Amplify -->
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script src="/js/aws-config.js"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
-
         // Configurar o Amplify
         const { Amplify, Auth } = aws_amplify;
         Amplify.configure(awsConfig);
 
-        // Verificar autenticação
+        let pollingInterval;
+        let totalPollingTime = 0;
+        const POLLING_INTERVAL = 20000; // 20 segundos
+        const MAX_POLLING_TIME = 120000; // 2 minutos
+
         async function checkAuth() {
             try {
                 const user = await Auth.currentAuthenticatedUser();
-                return true;
-            } catch {
-                window.location.href = 'login.html';
+                console.log('Usuário autenticado:', user);
+                return user;
+            } catch (error) {
+                console.error('Erro de autenticação:', error);
+                window.location.href = '/login.html';
                 return false;
             }
         }
 
-        // Gerar QR Code
         async function generateQRCode() {
+            console.log('Iniciando geração do QR Code');
             const loading = document.getElementById('loading');
             const qrContent = document.getElementById('qrContent');
-            const qrImage = document.getElementById('qrImage');
+            const qrCodeElement = document.getElementById('qrCode');
 
             try {
-                // Pegar o número do telefone da URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const phone = urlParams.get('phone');
-                if (!phone) {
-                    window.location.href = 'whatsapp-connect.html';
+                // Pegar o número do telefone dos atributos do usuário
+                const user = await Auth.currentAuthenticatedUser();
+                const { phone_number } = user.attributes;
+                console.log('Número do telefone do usuário:', phone_number);
+                
+                if (!phone_number) {
+                    console.error('Número de telefone não encontrado');
+                    window.location.href = '/whatsapp-connect.html';
                     return;
                 }
 
                 // Formatar o número do telefone
-                const formattedPhone = '55' + phone.replace(/\D/g, '');
+                const formattedPhone = phone_number.replace(/^\+/, '');
+                console.log('Número formatado:', formattedPhone);
 
                 // Chamar a API para gerar o QR Code
+                console.log('Chamando API para gerar QR Code...');
                 const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
                     method: 'POST',
                     headers: {
@@ -151,31 +216,145 @@
                     })
                 });
 
+                const data = await response.json();
+                console.log('Resposta da API:', data);
+
                 if (!response.ok) {
-                    throw new Error('Erro ao gerar QR Code');
+                    throw new Error(`Erro na API: ${data.message || 'Erro desconhecido'}`);
                 }
 
-                const data = await response.json();
-                
-                // Esconder loading e mostrar QR Code
+                // Exibir o QR Code e o código de pareamento
+                console.log('Exibindo QR Code e código de pareamento');
                 loading.style.display = 'none';
                 qrContent.style.display = 'block';
-                qrImage.src = data.base64;
+                qrCodeElement.src = data.base64;
+
+                // Exibir o código de pareamento se disponível
+                const pairingCodeContent = document.getElementById('pairingCodeContent');
+                const pairingCodeValue = document.getElementById('pairingCodeValue');
+                if (data.pairingCode) {
+                    pairingCodeContent.style.display = 'block';
+                    pairingCodeValue.textContent = data.pairingCode;
+                }
+
+                // Iniciar o polling para verificar o status da conexão
+                console.log('Iniciando polling...');
+                startPolling(formattedPhone);
             } catch (error) {
-                console.error('Erro:', error);
+                console.error('Erro detalhado:', error);
                 alert('Erro ao gerar QR Code. Por favor, tente novamente.');
-                window.location.href = 'whatsapp-instructions.html';
+                window.location.href = '/whatsapp-connect.html';
             }
+        }
+
+        async function pollInstanceStatus(phoneNumber) {
+            try {
+                console.log('Verificando status para o número:', phoneNumber);
+                const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messageType: "pollingInstante",
+                        phoneNumber: phoneNumber
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Resposta completa do polling:', {
+                    status: response.status,
+                    ok: response.ok,
+                    data: data
+                });
+                console.log('State retornado:', data.state);
+
+                if (!response.ok) {
+                    console.error('Resposta da API não ok:', response.status);
+                    throw new Error('Erro na requisição de polling');
+                }
+
+                const isConnected = data.state === 'open';
+                console.log('Está conectado?', isConnected);
+                return isConnected;
+            } catch (error) {
+                console.error('Erro ao verificar status:', error);
+                return false;
+            }
+        }
+
+        function startPolling(phoneNumber) {
+            console.log('Iniciando polling para o número:', phoneNumber);
+            
+            // Limpar qualquer polling anterior que possa estar rodando
+            if (pollingInterval) {
+                console.log('Limpando polling anterior');
+                clearInterval(pollingInterval);
+            }
+            
+            // Resetar o tempo total
+            totalPollingTime = 0;
+            console.log('Tempo de polling resetado');
+
+            pollingInterval = setInterval(async () => {
+                totalPollingTime += POLLING_INTERVAL;
+                console.log('------- Nova verificação de polling -------');
+                console.log('Tempo total de polling:', totalPollingTime);
+                console.log('Tempo máximo:', MAX_POLLING_TIME);
+                console.log('Intervalo:', POLLING_INTERVAL);
+
+                const isConnected = await pollInstanceStatus(phoneNumber);
+                console.log('Resultado da verificação:', isConnected);
+
+                if (isConnected) {
+                    console.log('Dispositivo conectado! Limpando interval e redirecionando...');
+                    clearInterval(pollingInterval);
+                    // Garantir que o usuário continue autenticado ao redirecionar
+                    try {
+                        await Auth.currentSession(); // Atualiza a sessão antes de redirecionar
+                        window.location.href = '/whatsapp-success.html';
+                    } catch (error) {
+                        console.error('Erro ao verificar sessão:', error);
+                        window.location.href = '/login.html';
+                    }
+                    return;
+                }
+
+                if (totalPollingTime >= MAX_POLLING_TIME) {
+                    console.log('Tempo de polling expirado. Limpando interval...');
+                    clearInterval(pollingInterval);
+                    const retry = confirm('O tempo de conexão expirou. Deseja gerar um novo QR Code?');
+                    
+                    if (retry) {
+                        console.log('Usuário optou por reiniciar. Gerando novo QR Code...');
+                        generateQRCode();
+                    } else {
+                        console.log('Usuário optou por não reiniciar. Redirecionando...');
+                        window.location.href = '/subscription.html';
+                    }
+                } else {
+                    console.log('Aguardando próxima verificação em', POLLING_INTERVAL/1000, 'segundos');
+                }
+            }, POLLING_INTERVAL);
         }
 
         // Inicializar página
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Página carregada');
+            
             // Verificar se o usuário está autenticado
-            const isAuthenticated = await checkAuth();
-            if (!isAuthenticated) return;
+            const user = await checkAuth();
+            if (!user) return;
 
-            // Gerar QR Code
+            // Gerar o QR Code
             generateQRCode();
+        });
+
+        // Limpar o intervalo quando a página for fechada
+        window.addEventListener('beforeunload', () => {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
         });
     </script>
 </body>

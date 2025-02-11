@@ -4,185 +4,199 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conectar WhatsApp - Transcrição IA</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/subscription.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/subscription.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .steps-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .step {
+        .instructions-container {
             background: #000;
             border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: 2rem;
+            margin: 2rem auto;
+            text-align: left;
+            max-width: 600px;
             color: #fff;
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
         }
 
-        .step-number {
+        .instructions-section {
+            margin-bottom: 2rem;
+        }
+
+        .instructions-section h2 {
+            color: #00A3FF;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .instructions-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .instructions-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .instructions-list .step-number {
             background: #00A3FF;
-            color: #fff;
-            width: 30px;
-            height: 30px;
+            color: #000;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            margin-right: 1rem;
             flex-shrink: 0;
         }
 
-        .step-content h3 {
-            margin: 0 0 0.5rem 0;
-            color: #00A3FF;
+        .instructions-list .step-content {
+            flex: 1;
         }
 
-        .step-content p {
-            margin: 0;
-            line-height: 1.5;
+        .method-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .qr-container {
-            display: none;
-            background: #000;
-            border-radius: 10px;
-            padding: 2rem;
-            margin-top: 2rem;
-            text-align: center;
-        }
-
-        .qr-code {
-            max-width: 300px;
-            margin: 1rem auto;
-        }
-
-        .qr-code img {
-            width: 100%;
-            height: auto;
-        }
-
-        .loading {
+        .method-tab {
+            padding: 1rem 2rem;
             color: #fff;
-            text-align: center;
-            padding: 1rem;
+            cursor: pointer;
+            opacity: 0.6;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
         }
 
-        .loading i {
-            animation: spin 1s linear infinite;
+        .method-tab.active {
+            opacity: 1;
+            border-bottom-color: #00A3FF;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .method-content {
+            display: none;
+        }
+
+        .method-content.active {
+            display: block;
+        }
+
+        .continue-button {
+            background: #00A3FF;
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 2rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .continue-button:hover {
+            background: #0082cc;
         }
     </style>
 </head>
 <body>
     <div class="subscription-container">
         <div class="subscription-header">
-            <img src="images/logo.png" alt="Logo Transcrição IA">
-            <h1>Conectar WhatsApp</h1>
-            <p>Siga os passos abaixo para conectar seu WhatsApp ao nosso serviço</p>
+            <img src="/images/logo.png" alt="Logo Transcrição IA">
+            <h1>Instruções de Conexão</h1>
+            <p>Siga os passos abaixo para conectar seu WhatsApp</p>
         </div>
 
-        <div class="steps-container">
-            <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <h3>Abra o WhatsApp</h3>
-                    <p>No seu celular, abra o aplicativo do WhatsApp</p>
+        <div class="instructions-container">
+            <div class="method-tabs">
+                <div class="method-tab active" onclick="switchMethod('qrcode')">QR Code</div>
+                <div class="method-tab" onclick="switchMethod('pairing')">Código de Pareamento</div>
+            </div>
+
+            <div id="qrcode-method" class="method-content active">
+                <div class="instructions-section">
+                    <h2>Como conectar usando QR Code</h2>
+                    <ul class="instructions-list">
+                        <li>
+                            <div class="step-number">1</div>
+                            <div class="step-content">Abra o WhatsApp no seu celular</div>
+                        </li>
+                        <li>
+                            <div class="step-number">2</div>
+                            <div class="step-content">Toque em Mais opções ⋮ ou Configurações ⚙️</div>
+                        </li>
+                        <li>
+                            <div class="step-number">3</div>
+                            <div class="step-content">Selecione "Aparelhos conectados"</div>
+                        </li>
+                        <li>
+                            <div class="step-number">4</div>
+                            <div class="step-content">Toque em "Conectar um aparelho"</div>
+                        </li>
+                        <li>
+                            <div class="step-number">5</div>
+                            <div class="step-content">Aponte a câmera para o QR Code que será exibido na próxima tela</div>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
-            <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <h3>Acesse as Configurações</h3>
-                    <p>Toque nos três pontos (⋮) no canto superior direito e selecione "Aparelhos conectados"</p>
+            <div id="pairing-method" class="method-content">
+                <div class="instructions-section">
+                    <h2>Como conectar usando Código de Pareamento</h2>
+                    <ul class="instructions-list">
+                        <li>
+                            <div class="step-number">1</div>
+                            <div class="step-content">Abra o WhatsApp no seu celular</div>
+                        </li>
+                        <li>
+                            <div class="step-number">2</div>
+                            <div class="step-content">Toque em Mais opções ⋮ ou Configurações ⚙️</div>
+                        </li>
+                        <li>
+                            <div class="step-number">3</div>
+                            <div class="step-content">Selecione "Aparelhos conectados"</div>
+                        </li>
+                        <li>
+                            <div class="step-number">4</div>
+                            <div class="step-content">Toque em "Conectar um aparelho"</div>
+                        </li>
+                        <li>
+                            <div class="step-number">5</div>
+                            <div class="step-content">Toque em "Conectar com código"</div>
+                        </li>
+                        <li>
+                            <div class="step-number">6</div>
+                            <div class="step-content">Digite o código de 8 dígitos que será exibido na próxima tela</div>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
-            <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                    <h3>Conectar um Dispositivo</h3>
-                    <p>Toque em "Conectar um aparelho" e prepare-se para escanear o QR Code</p>
-                </div>
-            </div>
-
-            <button id="readyButton" class="subscribe-button" style="display: block; margin: 2rem auto;">
-                Estou Pronto para Escanear
-            </button>
-
-            <div id="qrContainer" class="qr-container">
-                <h3 style="color: #fff;">Escaneie o QR Code</h3>
-                <div class="qr-code">
-                    <div id="loading" class="loading">
-                        <i class="fas fa-spinner fa-2x"></i>
-                        <p>Gerando QR Code...</p>
-                    </div>
-                    <img id="qrImage" style="display: none;" alt="QR Code do WhatsApp">
-                </div>
-                <p style="color: #fff;">Aponte a câmera do seu WhatsApp para este QR Code</p>
-            </div>
+            <button class="continue-button" onclick="window.location.href='/whatsapp-qrcode.html'">Continuar</button>
         </div>
     </div>
 
-    <!-- AWS Amplify -->
-    <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
-
-        // Configurar o Amplify
-        const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(awsConfig);
-
-        // Verificar autenticação
-        async function checkAuth() {
-            try {
-                const user = await Auth.currentAuthenticatedUser();
-                return true;
-            } catch {
-                window.location.href = 'login.html';
-                return false;
-            }
-        }
-
-        // Inicializar página
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Verificar se o usuário está autenticado
-            const isAuthenticated = await checkAuth();
-            if (!isAuthenticated) return;
-
-            // Pegar o número do telefone da URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const phone = urlParams.get('phone');
-            if (!phone) {
-                window.location.href = 'whatsapp-connect.html';
-                return;
-            }
-
-            // Formatar o número do telefone
-            const formattedPhone = '55' + phone.replace(/\D/g, '');
-
-            // Manipular clique no botão "Estou Pronto"
-            document.getElementById('readyButton').addEventListener('click', () => {
-                window.location.href = `whatsapp-qrcode.html?phone=${encodeURIComponent(phone)}`;
+        function switchMethod(method) {
+            // Atualizar tabs
+            document.querySelectorAll('.method-tab').forEach(tab => {
+                tab.classList.remove('active');
             });
-        });
+            event.currentTarget.classList.add('active');
+
+            // Atualizar conteúdo
+            document.querySelectorAll('.method-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(method + '-method').classList.add('active');
+        }
     </script>
 </body>
 </html>

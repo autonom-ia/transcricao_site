@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conexão Realizada - Transcrição IA</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/subscription.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .success-container {
+            background: #000;
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2rem auto;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .success-icon {
+            color: #00A3FF;
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-message {
+            color: #fff;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .payment-info {
+            background: rgba(0, 163, 255, 0.1);
+            border: 1px solid #00A3FF;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .payment-info p {
+            color: #fff;
+            margin: 0.5rem 0;
+        }
+
+        .highlight {
+            color: #00A3FF;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="subscription-container">
+        <div class="subscription-header">
+            <img src="images/logo.png" alt="Logo Transcrição IA">
+            <h1>Conexão Realizada com Sucesso!</h1>
+        </div>
+
+        <div class="success-container">
+            <i class="fas fa-check-circle success-icon"></i>
+            
+            <div class="success-message">
+                <p>Parabéns! Seu WhatsApp foi conectado com sucesso ao serviço de transcrição.</p>
+            </div>
+
+            <div class="payment-info">
+                <p>Em breve você receberá no WhatsApp as instruções para pagamento da mensalidade.</p>
+                <p>O pagamento deve ser realizado em até <span class="highlight">48 horas</span>.</p>
+                <p><strong>Importante:</strong> Se o pagamento não for identificado dentro deste prazo, o serviço será automaticamente cancelado.</p>
+            </div>
+
+            <p style="color: #fff; margin-top: 2rem;">
+                Você já pode começar a usar o serviço! Envie um áudio para o número cadastrado e receba a transcrição automaticamente.
+            </p>
+        </div>
+    </div>
+
+    <!-- AWS Amplify -->
+    <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script src="/js/aws-config.js"></script>
+    <script>
+        // Configurar o Amplify
+        const { Amplify, Auth } = aws_amplify;
+        Amplify.configure(awsConfig);
+
+        // Verificar autenticação
+        async function checkAuth() {
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                console.log('Usuário autenticado:', user);
+            } catch (error) {
+                console.error('Erro de autenticação:', error);
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>

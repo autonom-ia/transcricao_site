@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificar WhatsApp - Transcrição IA</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/subscription.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/subscription.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -85,46 +85,46 @@
 
     <!-- AWS Amplify -->
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
+    <script src="/js/aws-config.js"></script>
     <script>
-        // Configuração do AWS Cognito
-        const awsConfig = {
-            Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_pYWYtZN5J',
-                userPoolWebClientId: '3gqumv4civjbbd885mmt0n12te'
-            }
-        };
-
         // Configurar o Amplify
         const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(awsConfig);
+        Amplify.configure(window.awsConfig);
 
         // Verificar autenticação
         async function checkAuth() {
             try {
                 const user = await Auth.currentAuthenticatedUser();
+                console.log('Usuário autenticado:', user);
                 return true;
-            } catch {
-                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Erro de autenticação:', error);
+                window.location.href = '/login.html';
                 return false;
             }
         }
 
         // Inicializar página
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Página carregada');
+            
             // Verificar se o usuário está autenticado
             const isAuthenticated = await checkAuth();
+            console.log('Usuário está autenticado?', isAuthenticated);
             if (!isAuthenticated) return;
 
-            // Pegar o número do telefone da URL
+            // Obter número do telefone da URL
             const urlParams = new URLSearchParams(window.location.search);
             const phone = urlParams.get('phone');
+            console.log('Número de telefone da URL:', phone);
+
             if (!phone) {
-                window.location.href = 'whatsapp-connect.html';
+                console.error('Número de telefone não encontrado na URL');
+                window.location.href = '/whatsapp-connect.html';
                 return;
             }
 
-            // Mostrar o número do telefone
+            // Exibir número do telefone
             document.getElementById('userPhone').textContent = phone;
 
             // Configurar inputs do token
@@ -154,48 +154,50 @@
                 e.preventDefault();
                 
                 // Coletar o token
-                const token = Array.from(inputs).map(input => input.value).join('');
+                const code = Array.from(inputs).map(input => input.value).join('');
+                console.log('Token coletado:', code);
                 
-                if (token.length !== 6) {
+                if (code.length !== 6) {
                     alert('Por favor, digite o código completo de 6 dígitos');
                     return;
                 }
 
                 try {
-                    // Pegar o número do telefone e formatar
-                    const phone = urlParams.get('phone');
-                    const formattedPhone = '55' + phone.replace(/\D/g, '');
-
-                    // Chamar a API para validar o token
+                    console.log('Enviando requisição para validar código...');
                     const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
                             messageType: "checkingToken",
-                            phoneNumber: formattedPhone,
-                            token: token
+                            phoneNumber: `55${phone.replace(/\D/g, '')}`,
+                            code: code
                         })
                     });
 
-                    const data = await response.json();
+                    console.log('Resposta da API:', response);
+                    console.log('Status da resposta:', response.status);
 
-                    if (data.statusCode === "200") {
-                        // Token validado com sucesso - redirecionar para instruções
-                        window.location.href = `whatsapp-instructions.html?phone=${encodeURIComponent(phone)}`;
-                    } else if (data.statusCode === "404") {
-                        // Token inválido
-                        alert('Código inválido. Por favor, verifique o código e tente novamente.');
-                        // Limpar os inputs
-                        inputs.forEach(input => input.value = '');
-                        inputs[0].focus();
-                    } else {
-                        throw new Error('Erro desconhecido ao validar o código');
+                    if (response.status !== 200) {
+                        throw new Error('Código inválido');
                     }
+
+                    const responseData = await response.json();
+                    console.log('Dados da resposta:', responseData);
+
+                    if (responseData.statusCode !== "200") {
+                        throw new Error('Código inválido');
+                    }
+
+                    console.log('Redirecionando para /whatsapp-instructions.html');
+                    window.location.href = '/whatsapp-instructions.html';
                 } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao verificar o código. Por favor, tente novamente.');
+                    console.error('Erro detalhado:', error);
+                    alert('Erro ao verificar código: ' + error.message);
+                    // Limpar os inputs
+                    inputs.forEach(input => input.value = '');
+                    inputs[0].focus();
                 }
             });
 
@@ -203,19 +205,14 @@
             document.getElementById('resendCode').addEventListener('click', async (e) => {
                 e.preventDefault();
                 try {
-                    // Pegar o número do telefone e formatar
-                    const phone = urlParams.get('phone');
-                    const formattedPhone = '55' + phone.replace(/\D/g, '');
-
-                    // Chamar a API para reenviar o código
                     const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
                             messageType: "validateNumber",
-                            phoneNumber: formattedPhone
+                            phoneNumber: `55${phone.replace(/\D/g, '')}`
                         })
                     });
 
@@ -229,9 +226,30 @@
                     inputs[0].focus();
                 } catch (error) {
                     console.error('Erro:', error);
-                    alert('Erro ao reenviar o código. Por favor, tente novamente.');
+                    alert('Erro ao reenviar o código: ' + error.message);
                 }
             });
+
+            // Enviar código ao carregar a página
+            try {
+                const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messageType: "validateNumber",
+                        phoneNumber: `55${phone.replace(/\D/g, '')}`
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao enviar o código');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao enviar código: ' + error.message);
+            }
         });
     </script>
 </body>
