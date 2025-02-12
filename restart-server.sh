@@ -1,3 +1,4 @@
+npm run build
 #!/bin/bash
 
 # Encontrar e matar o processo que está usando a porta 8000
