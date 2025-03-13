@@ -96,7 +96,21 @@
         }
 
         // Inicializar página
-        document.addEventListener('DOMContentLoaded', checkAuth);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+
+            // Verificar se deve ocultar informações de pagamento
+            const urlParams = new URLSearchParams(window.location.search);
+            const hidePayment = urlParams.get('hidePayment') === 'true';
+
+            // Ocultar informações de pagamento se necessário
+            if (hidePayment) {
+                const paymentInfo = document.querySelector('.payment-info');
+                if (paymentInfo) {
+                    paymentInfo.style.display = 'none';
+                }
+            }
+        });
     </script>
 </body>
 </html>

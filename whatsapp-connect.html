@@ -84,6 +84,15 @@
             const isAuthenticated = await checkAuth();
             if (!isAuthenticated) return;
 
+            // Verificar se deve ocultar informações de pagamento
+            const urlParams = new URLSearchParams(window.location.search);
+            const hidePayment = urlParams.get('hidePayment') === 'true';
+
+            // Atualizar texto baseado no parâmetro hidePayment
+            if (hidePayment) {
+                document.querySelector('.subscription-header p').textContent = 'Vamos conectar seu WhatsApp para ativar sua instância';
+            }
+
             // Inicializar máscara do telefone
             const phoneInput = document.getElementById('phone');
             IMask(phoneInput, {
@@ -115,8 +124,11 @@
                 // Formatar o número para o formato requerido (55DDD999999999)
                 const formattedPhone = '55' + phone.replace(/\D/g, '');
 
-                // Redirecionar para a página de verificação
-                window.location.href = `/whatsapp-verify.html?phone=${encodeURIComponent(phone)}`;
+                // Redirecionar para a página de verificação mantendo o parâmetro hidePayment
+                const urlParams = new URLSearchParams(window.location.search);
+                const hidePayment = urlParams.get('hidePayment') === 'true';
+                const redirectUrl = `/whatsapp-verify.html?phone=${encodeURIComponent(phone)}${hidePayment ? '&hidePayment=true' : ''}`;
+                window.location.href = redirectUrl;
             });
         });
     </script>

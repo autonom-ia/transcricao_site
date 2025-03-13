@@ -29,7 +29,7 @@
 }
 
 .subscription-plan {
-    background: #000;
+    background: var(--accent-color);
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 2rem;
@@ -37,6 +37,7 @@
     max-width: 400px;
     text-align: center;
     transition: transform 0.3s ease;
+    border: 1px solid rgba(71, 181, 255, 0.1);
 }
 
 .subscription-plan:hover {
@@ -51,7 +52,7 @@
 
 .plan-price {
     font-size: 3rem;
-    color: #00A3FF;
+    color: var(--primary-color);
     margin-bottom: 1rem;
 }
 
@@ -77,25 +78,26 @@
 }
 
 .plan-features li i {
-    color: #00A3FF;
+    color: var(--primary-color);
     margin-right: 0.5rem;
 }
 
 .subscribe-button {
-    background: #00A3FF;
-    color: white;
+    background: var(--primary-color);
+    color: var(--text-color);
     border: none;
     padding: 1rem 2rem;
     border-radius: 30px;
     font-size: 1.1rem;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
     width: 100%;
     max-width: 200px;
 }
 
 .subscribe-button:hover {
-    background: #0082cc;
+    background: var(--secondary-color);
+    transform: translateY(-2px);
 }
 
 .features-grid {
@@ -106,16 +108,17 @@
 }
 
 .feature-card {
-    background: #000;
+    background: var(--accent-color);
     border-radius: 10px;
     padding: 1.5rem;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(71, 181, 255, 0.1);
 }
 
 .feature-card i {
     font-size: 2rem;
-    color: #00A3FF;
+    color: var(--primary-color);
     margin-bottom: 1rem;
 }
 

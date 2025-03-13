@@ -44,32 +44,94 @@
     </div>
 
     <!-- AWS Amplify -->
-    <script>
-        console.log('Before loading aws-amplify.min.js');
-    </script>
     <script src="https://unpkg.com/aws-amplify@3.3.27/dist/aws-amplify.min.js"></script>
-    <script>
-        console.log('After loading aws-amplify.min.js');
-        console.log('aws_amplify:', window.aws_amplify);
-    </script>
     <script src="/js/aws-config.js"></script>
     <script>
-        // Configurar o Amplify
-        const { Amplify, Auth } = aws_amplify;
-        Amplify.configure(window.awsConfig);
-
-        // Manipular envio do formulário
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
+        // Configurar o Amplify quando a página carregar
+        document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const user = await Auth.signIn(email, password);
-                window.location.href = '/subscription.html';
+                console.log('Configurando Amplify...');
+                const { Amplify, Auth } = aws_amplify;
+                Amplify.configure(awsConfig);
+
+                // Procurar formulário de login
+                const loginForm = document.getElementById('loginForm');
+                if (!loginForm) {
+                    console.error('Formulário de login não encontrado');
+                    return;
+                }
+
+                // Adicionar evento de submit
+                loginForm.onsubmit = async function(e) {
+                    e.preventDefault();
+                    console.log('Formulário enviado');
+
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    try {
+                        // Fazer login
+                        const user = await Auth.signIn(email, password);
+                        console.log('Login bem-sucedido:', user);
+                        
+                        // Obter atributos do usuário
+                        const { phone_number } = user.attributes;
+                        console.log('Atributos:', user.attributes);
+
+                        // Se tiver número de telefone, verificar instância
+                        if (phone_number) {
+                            try {
+                                // Formatar número removendo '+' e outros caracteres
+                                const formattedPhone = phone_number.replace(/^\+/, '').replace(/\D/g, '');
+                                console.log('Número formatado:', formattedPhone);
+
+                                // Verificar instância
+                                const response = await fetch('https://n8n.autonomia.site/webhook/transcricao_site', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        messageType: 'checkingInstante',
+                                        phoneNumber: formattedPhone
+                                    })
+                                });
+
+                                const data = await response.json();
+                                console.log('Resposta da API:', data);
+                                
+                                if (data.status === '200') {
+                                    if (data.message === 'createInstance') {
+                                        console.log('Redirecionando para whatsapp-connect...');
+                                        window.location.href = '/whatsapp-connect.html?hidePayment=true';
+                                        return;
+                                    } else if (data.message === 'active') {
+                                        console.log('Redirecionando para tarefas...');
+                                        window.location.href = '/tasks.html';
+                                        return;
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Erro ao verificar instância:', error);
+                            }
+                        } else {
+                            console.log('Usuário não tem número de telefone');
+                        }
+
+                        // Se não tiver telefone ou a verificação falhar
+                        window.location.href = '/subscription.html';
+                    } catch (error) {
+                        console.error('Erro de login:', error);
+                        if (error.code === 'UserNotConfirmedException') {
+                            alert('Por favor, confirme seu email antes de fazer login.');
+                            window.location.href = `/confirm.html?email=${encodeURIComponent(email)}`;
+                        } else {
+                            alert('Erro ao fazer login: ' + error.message);
+                        }
+                    }
+                };
             } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao fazer login. Por favor, verifique suas credenciais.');
+                console.error('Erro ao inicializar:', error);
             }
         });
     </script>

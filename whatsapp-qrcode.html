@@ -312,7 +312,10 @@
                     // Garantir que o usuário continue autenticado ao redirecionar
                     try {
                         await Auth.currentSession(); // Atualiza a sessão antes de redirecionar
-                        window.location.href = '/whatsapp-success.html';
+                        // Verificar e propagar o parâmetro hidePayment
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const hidePayment = urlParams.get('hidePayment') === 'true';
+                        window.location.href = `/whatsapp-success.html${hidePayment ? '?hidePayment=true' : ''}`;
                     } catch (error) {
                         console.error('Erro ao verificar sessão:', error);
                         window.location.href = '/login.html';

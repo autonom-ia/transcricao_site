@@ -190,8 +190,10 @@
                         throw new Error('Código inválido');
                     }
 
+                    // Propagar o parâmetro hidePayment
+                    const hidePayment = urlParams.get('hidePayment') === 'true';
                     console.log('Redirecionando para /whatsapp-instructions.html');
-                    window.location.href = '/whatsapp-instructions.html';
+                    window.location.href = `/whatsapp-instructions.html${hidePayment ? '?hidePayment=true' : ''}`;
                 } catch (error) {
                     console.error('Erro detalhado:', error);
                     alert('Erro ao verificar código: ' + error.message);

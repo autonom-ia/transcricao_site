@@ -77,7 +77,7 @@ resource "aws_cloudfront_distribution" "website_distribution" {
   default_root_object = "index.html"
   price_class        = "PriceClass_100"
 
-  aliases = ["transcricao.autonomia.site"]
+  aliases = ["transcricao.autonomia.site", "hub2you.autonomia.site"]
 
   origin {
     domain_name              = aws_s3_bucket.website_bucket.bucket_regional_domain_name

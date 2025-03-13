@@ -6,8 +6,8 @@ const { testUsers } = require('./test-data');
 const awsConfig = {
     Auth: {
         region: 'us-east-1',
-        userPoolId: 'us-east-1_dga5YS2A0',
-        userPoolWebClientId: '1vhumvqrgq6ohod253f6stmqoh'
+        userPoolId: 'us-east-1_1AR6CDpWO',
+        userPoolWebClientId: '1spvufe37esdugaoo3k8do3fm3'
     }
 };
 

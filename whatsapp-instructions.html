@@ -179,11 +179,20 @@
                 </div>
             </div>
 
-            <button class="continue-button" onclick="window.location.href='/whatsapp-qrcode.html'">Continuar</button>
+            <button class="continue-button" onclick="continueToQRCode()">Continuar</button>
         </div>
     </div>
 
     <script>
+        // Verificar se deve ocultar informações de pagamento
+        const urlParams = new URLSearchParams(window.location.search);
+        const hidePayment = urlParams.get('hidePayment') === 'true';
+
+        // Função para continuar para a página do QR Code
+        function continueToQRCode() {
+            window.location.href = `/whatsapp-qrcode.html${hidePayment ? '?hidePayment=true' : ''}`;
+        }
+
         function switchMethod(method) {
             // Atualizar tabs
             document.querySelectorAll('.method-tab').forEach(tab => {
