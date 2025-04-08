@@ -174,12 +174,17 @@
 
                 // Registrar usuário na API transcricao_site
                 const apiUrl = 'https://n8n.autonomia.site/webhook/transcricao_site';
+                
+                // Obter a URL raiz do usuário
+                const origin = window.location.origin;
+                
                 const userData = {
                     messageType: "createUser",
                     phoneNumber: formattedPhone.replace(/\D/g, ''),
                     cpf: cpf,
                     email: email,
-                    name: name
+                    name: name,
+                    origin: origin
                 };
 
                 try {
